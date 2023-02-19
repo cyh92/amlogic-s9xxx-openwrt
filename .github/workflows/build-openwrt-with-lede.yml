@@ -156,6 +156,14 @@ jobs:
           make -j$(($(nproc) + 1)) V=s || make -j1 || make -j1 V=s
           echo "build_tag=OpenWrt_lede_$(date +"%m.%d.%H%M")" >> ${GITHUB_OUTPUT}
           echo "status=success" >> ${GITHUB_OUTPUT}
+      - name: 上传固件到 Release
+        uses: softprops/action-gh-release@v1
+        env:
+         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+         tag_name: ${{ steps.compile.outputs.build_tag }}
+         body_path: release.txt
+         files: openwrt/bin/targets/*/*/*rootfs.tar.gz
 
       - name: Upload OpenWrt Firmware to Release
         uses: ncipollo/release-action@main
@@ -165,7 +173,7 @@ jobs:
           artifacts: openwrt/bin/targets/*/*/*rootfs.tar.gz
           allowUpdates: true
           token: ${{ secrets.GITHUB_TOKEN }}
-
+      
       - name: Clean up server space
         if: ${{ steps.compile.outputs.status }} == 'success' && !cancelled()
         run: |
